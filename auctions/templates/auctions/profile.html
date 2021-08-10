@@ -1,0 +1,156 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    {%if has_content%}
+    <div class="all-profile">
+        <div aiclass="contner" style="display: flex" >
+            <div style="width: 45% ">
+                <img src={{ product.image }} class="profile-image">
+            </div> 
+            
+            <div style="flex-grow: 1;"">   
+                <h1>Listing: {{product.name}}</h1>
+                <br>
+                <div>
+                    <h3>
+                        Description:
+                    </h3>
+                     {{product.description}}
+                </div>    
+                <br>
+                <div>
+                    <h4>
+                        Starting Price:
+                    </h4>
+                     ${{ product.starting_price}}
+                </div>
+                
+                <div>
+                    <h4>
+                        Current Price:  
+                    </h4>
+                    ${{ product.current_price}} 
+                </div>
+                
+                {% if user.is_authenticated %}
+                    <br>
+                    {%if in_watchlist%}
+                        <form action="{% url 'wishlist_remove' %}" method="post">
+                            {% csrf_token %}
+                            <input type="hidden"  name="product_id" value={{product.id}}>
+                            <div class="button-box">
+
+                                <input class="button-red" type="submit" onkeypress="this.style.width = ((this.value.length + 1) * 8) + 'px';" value="Remove from Watchlist">            
+                            </div>
+                        </form>
+                    {%else%}
+                        <form action="{% url 'wishlist_add' %}" method="post">
+                            {% csrf_token %}
+                            <input type="hidden"  name="product_id" value={{product.id}}>
+                            <div class="button-box">
+
+                                <input class="button" type="submit" onkeypress="this.style.width = ((this.value.length + 1) * 8) + 'px';" value="Add to Watchlist">            
+                            </div>
+                        </form>
+                    {% endif %}
+                    
+    
+                    {%if isMine%}
+                        {%if isActive%}
+                            <form action="{% url 'close' %}" method="post">
+                                {% csrf_token %}
+                                <input type="hidden"  name="product_id" value={{product.id}}>
+                                <br>
+                                <div class="button-box">
+
+                                    <input class="button" type="submit" onkeypress="this.style.width = ((this.value.length + 1) * 8) + 'px';" value="Close Listing">            
+                                </div>
+                            </form>
+                        {% else %}
+                        <br>
+                            <div class="closed-red">
+                               Closed 
+                            </div>
+                            
+                        {% endif %}
+                    {%else%}
+                        {% if isActive %}
+                            <form action="{% url 'place_bid' product.id %}" method="post">
+                                {% csrf_token %}
+                                <div class="form-dark">
+                                 <br>
+                                    <div class="user-box1">
+                                        {{bidform}}
+                                        <label >Place a Bid</label>
+                                    </div>
+                                    
+                                    {%if bid_isvalid%}
+                                    {%else%}
+                                        <h3>
+                                            Bid should be greater than or equal to current price
+                                        </h3>
+                                    {% endif %}
+                                </div>
+        
+                                <div class="button-box">
+                                    <input class="button" type="submit" onkeypress="this.style.width = ((this.value.length + 1) * 8) + 'px';" value="Place Bid">            
+                                </div>
+                            </form>
+                        {%else%}
+                            {% if  isWinner%}
+                            <br>
+                                <h3> 
+                                    <div class="winner">
+                                        Congratulations {{WinnerName.username}}! You won this auction!
+                                    </div>
+
+                                </h3>
+                            {% else %}
+                                <br>
+                                This auction is closed
+                            {% endif %}
+                        {% endif %}
+                    {%endif%}
+                {% endif %}
+            </div>
+        </div>
+        <br>
+
+        <br>
+        <div>
+            <form action="{% url 'place_comment' product.id %}" method="post">
+                {% csrf_token %}   
+                <div class="form-dark">
+                    <div class="user-box1">
+                        {{commentform}}
+                        <label >Add a Comment</label>
+                    </div>
+                </div>
+                <div class="button-box">
+                    <input class="button" type="submit" onkeypress="this.style.width = ((this.value.length + 1) * 8) + 'px';" value="Submit">   
+                </div>
+            </form>
+            <br>
+            <h2>
+                Comments
+            </h2> 
+                {%for comment in comments%}
+                    <div >
+                        <h6>
+                        {{comment.commentor}}  
+                        </h6>
+                    </div>
+        
+                    <div >
+                        {{comment}}
+                    </div>
+                    <br>
+                {% empty %}
+                    <h5 class="empty">No comments to show</h5>
+                {% endfor %}
+        </div>
+    </div>
+    {%else%}
+    <h2>{{texts}}</h2>
+    {% endif %}
+    {% endblock %}

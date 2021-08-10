@@ -1,0 +1,52 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <div class="grid">
+        {% for listing in listings %}
+            <a href="{% url 'listing_profile' listing.id %}">
+                <div class="item">
+                    <img src={{ listing.image }} class="product-image">
+                    <br>
+                    <h6>
+                        <div class="item-name">
+                            
+                                {{listing.name}}
+                            
+                        </div>
+                    </h6>
+                    <div class="item-des">
+                        {{listing.description}}
+                    </div>
+
+                    <div class="price">
+                        Price: ${{listing.current_price}}
+                    </div>
+
+                    {% if user.is_authenticated %}
+                        <div class="watch-list-button">
+                            {%if listing in watchlist_items%}
+                                <form action="{% url 'wishlist_remove' %}" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden"  name="product_id" value={{listing.id}}>
+                                    <br>
+                                    <div class="button-box">
+                                        <input class="button-red" type="submit" onkeypress="this.style.width = ((this.value.length + 1) * 8) + 'px';" value="Remove from Watchlist">            
+                                    </div>
+                                </form>
+                            {%else%}
+                                <form action="{% url 'wishlist_add' %}" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden"  name="product_id"  value={{listing.id}}>
+                                    <br>
+                                    <div class="button-box">
+                                        <input class="button" type="submit" onkeypress="this.style.width = ((this.value.length + 1) * 8) + 'px';" value="Add to Watchlist">            
+                                    </div>
+                                </form>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
