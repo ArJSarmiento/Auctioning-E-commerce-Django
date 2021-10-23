@@ -16,4 +16,4 @@ python manage.py runserver
 ```
 
 # Demo:
-[![VIEW DEMO](https://img.youtube.com/vi/MrRpPPqpEyw/0.jpg)](https://www.youtube.com/watch?v=MrRpPPqpEyw)
+[![VIEW DEMO](https://img.youtube.com/vi/MrRpPPqpEyw/maxresdefault.jpg)](https://www.youtube.com/watch?v=MrRpPPqpEyw)
