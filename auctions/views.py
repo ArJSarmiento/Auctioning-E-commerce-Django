@@ -120,18 +120,18 @@ def listing_profile(request, product_id):
 
     if current_user.is_authenticated:
         InWatchlist = isInWatchlist(current_user, product)
-        isMine = True if product in current_user.my_listings.all() else False
+        isMine = product in current_user.my_listings.all()
 
         args = Bid.objects.filter(bid_listing=product)
         if args.count() >= 1:
             highest_bid =  args.order_by('-bid')[0]
-            isWinner = True if highest_bid.bidder == current_user else False
+            isWinner = highest_bid.bidder == current_user
             data["isWinner"] = isWinner
-        
-        
+
+
         data["in_watchlist"] = InWatchlist
         data["isMine"] = isMine
-        
+
     return render(request, "auctions/profile.html", 
         data
     )
@@ -154,28 +154,29 @@ def place_bid(request, product_id):
 
     if request.method == "POST":
         bidform = BidForm(request.POST or None)
-        if bidform.is_valid():
-            if bidform != None:
-                added_bid  = bidform.save(commit=False)
-                if added_bid.bid >= product.starting_price and added_bid.bid> product.current_price:
-                    added_bid.bid_listing = product
-                    added_bid.bidder = current_user
-                    added_bid.save()
-                    product.current_price = added_bid.bid
-                    product.save()
-                else:
-                    return render(request, "auctions/profile.html",{
-                        "WinnerName": current_user,
-                        "isActive": True,
-                        "bid_isvalid" : False,
-                        "comments": all_comments,
-                        "has_content": True,
-                        "product": product,
-                        "bidform": BidForm(),
-                        "commentform": CommentForm(),
-                        "in_watchlist": InWatchlist
-                    }) 
-       
+        if bidform.is_valid() and bidform != None:
+            added_bid  = bidform.save(commit=False)
+            if (
+                added_bid.bid < product.starting_price
+                or added_bid.bid <= product.current_price
+            ):
+                return render(request, "auctions/profile.html",{
+                    "WinnerName": current_user,
+                    "isActive": True,
+                    "bid_isvalid" : False,
+                    "comments": all_comments,
+                    "has_content": True,
+                    "product": product,
+                    "bidform": BidForm(),
+                    "commentform": CommentForm(),
+                    "in_watchlist": InWatchlist
+                }) 
+
+            added_bid.bid_listing = product
+            added_bid.bidder = current_user
+            added_bid.save()
+            product.current_price = added_bid.bid
+            product.save()
     return redirect('/' + str(product_id))
 
 @login_required(login_url='login')
@@ -291,27 +292,27 @@ def logout_view(request):
 
 
 def register(request):
-    if request.method == "POST":
-        username = request.POST["username"]
-        email = request.POST["email"]
-
-        # Ensure password matches confirmation
-        password = request.POST["password"]
-        confirmation = request.POST["confirmation"]
-        if password != confirmation:
-            return render(request, "auctions/register.html", {
-                "message": "Passwords must match."
-            })
-
-        # Attempt to create new user
-        try:
-            user = User.objects.create_user(username, email, password)
-            user.save()
-        except IntegrityError:
-            return render(request, "auctions/register.html", {
-                "message": "Username already taken."
-            })
-        login(request, user)
-        return HttpResponseRedirect(reverse("index"))
-    else:
+    if request.method != "POST":
         return render(request, "auctions/register.html")
+        
+    username = request.POST["username"]
+    email = request.POST["email"]
+
+    # Ensure password matches confirmation
+    password = request.POST["password"]
+    confirmation = request.POST["confirmation"]
+    if password != confirmation:
+        return render(request, "auctions/register.html", {
+            "message": "Passwords must match."
+        })
+
+    # Attempt to create new user
+    try:
+        user = User.objects.create_user(username, email, password)
+        user.save()
+    except IntegrityError:
+        return render(request, "auctions/register.html", {
+            "message": "Username already taken."
+        })
+    login(request, user)
+    return HttpResponseRedirect(reverse("index"))
